@@ -1,7 +1,7 @@
 function initUi()
-    app.registerUi({ ["menu"] = "Cycle through tool size", ["callback"] = "cycle_size", ["accelerator"] = "<Alt>S"});
+    app.registerUi({ ["menu"] = "Cycle through tool size", ["callback"] = "cycle_size", ["accelerator"] = "<Shift><Alt>S"});
 
-    app.registerUi({ ["menu"] = "Cycle through tools", ["callback"] = "cycle_tools", ["accelerator"] = "<Alt>T"});
+    app.registerUi({ ["menu"] = "Cycle through tools", ["callback"] = "cycle_tools", ["accelerator"] = "<Shift><Alt>T"});
     print("Example plugin registered\n");
 end
 
