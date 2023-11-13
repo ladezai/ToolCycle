@@ -14,6 +14,18 @@ function rgb_to_hex(r, g, b)
     return tonumber(hex_string, 16)
 end
 
+-- Generates the palette file path depending on OS type.
+function palette_path()
+    local os_type = package.config:sub(1,1) == "\\" and "win" or "unix";
+    if os_type == "unix" then
+        return os.getenv("HOME") .. "/.config/xournalpp/palette.gpl";
+    else
+        -- TODO: add support for windows
+        app.msgbox("Windows is not supported", {});
+        return "";
+    end
+end
+
 -- Check if a file exists 
 function file_exists(file)
     local f = io.open(file, "rb");
@@ -72,11 +84,8 @@ local toolSize = {
     {"thick", "ACTION_SIZE_THICK"}
 }
 
--- TODO: this path it is not correct, it works only with absolute paths and not
--- relative paths, e.g. ~/.config doesn't work!
---local palettePath   = "/Users/gio/.config/xournalpp/palette.gpl";
-local globalPath = "palette.gpl"; -- TODO: add a OS agnostic way to load the palette
 -- store the palette colors in a table
+local globalPath    = palette_path(); 
 local paletteColors = load_color_palette(globalPath, 4);
 
 local currentTool   = 1;
