@@ -15,7 +15,7 @@ function rgb_to_hex(r, g, b)
 end
 
 -- Generates the palette file path depending on OS type.
-function palette_path()
+function get_palette_path()
     local os_type = package.config:sub(1,1) == "\\" and "win" or "unix";
     if os_type == "unix" then
         return os.getenv("HOME") .. "/.config/xournalpp/palette.gpl";
@@ -43,34 +43,29 @@ function load_color_palette(file, heading_length)
         return {};
     end
     
-    local hexColors = {};
-    local k = 1;
-    -- TODO: clean this part.
+    local hex_colors    = {};
+    local line_number   = 1;
     for line in io.lines(file) do 
         -- Skip the heading, read only the first three 
         -- tokens and store it into a table. Then, convert 
         -- the table to an unique hex value that represents 
         -- the color.
-        if k >= heading_length then
-            local i  = 1;
-            -- read the non-heading line 
-            local rgb_vals = {};
-            for color in string.gmatch(line, "[^%s]+") do
-                if i <= 3 then
-                    table.insert(rgb_vals, i, color);
-                end
-                i = i + 1
+        if line_number >= heading_length then
+            -- read the words in a non-heading line 
+            local tokens   = {};
+            for token in string.gmatch(line, "[^%s]+") do
+                table.insert(tokens, token);
             end
+            local hex_color = rgb_to_hex(tokens[1], tokens[2], tokens[3]);
             -- conversion of the non-heading line
-            local hexcolor = rgb_to_hex(rgb_vals[1], rgb_vals[2], rgb_vals[3]);
-            table.insert(hexColors, hexcolor);
+            table.insert(hex_colors, hex_color);
         end
-        k = k + 1;
+        line_number = line_number + 1;
     end
-    return hexColors
+    return hex_colors;
 end
 
--- Code to interate through the more common tools
+-- Common tools
 local toolList = {
     "ACTION_TOOL_PEN", -- select pen
     "ACTION_TOOL_ERASER", -- select eraser
@@ -78,6 +73,7 @@ local toolList = {
     "ACTION_TOOL_SELECT_REGION", -- select region tool
 }
 
+-- Common tool sizes
 local toolSize = {
     {"fine", "ACTION_SIZE_FINE"},
     {"medium", "ACTION_SIZE_MEDIUM"},
@@ -85,7 +81,7 @@ local toolSize = {
 }
 
 -- store the palette colors in a table
-local globalPath    = palette_path(); 
+local globalPath    = get_palette_path(); 
 local paletteColors = load_color_palette(globalPath, 4);
 
 local currentTool   = 1;
@@ -123,7 +119,7 @@ function cycle_color()
     else
         currentColor = 1;
     end
-    -- change colors accordingly to the palette given
+    -- change colors according to the given palette
     app.changeToolColor({["color"]=paletteColors[currentColor], ["selection"] = true});
 end
 
