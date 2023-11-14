@@ -35,7 +35,8 @@ function file_exists(file)
     return f ~= nil;
 end
 
--- TODO: Add Docs
+-- Reads a GIMP palette file and returns a table of the hexadecimal number 
+-- representing the colors in the given file. 
 function load_color_palette(file, heading_length)
     -- Check if the color palette exists
     if not file_exists(file) then 
@@ -44,23 +45,28 @@ function load_color_palette(file, heading_length)
     end
     
     local hex_colors    = {};
-    local line_number   = 1;
-    for line in io.lines(file) do 
-        -- Skip the heading, read only the first three 
-        -- tokens and store it into a table. Then, convert 
-        -- the table to an unique hex value that represents 
-        -- the color.
-        if line_number >= heading_length then
-            -- read the words in a non-heading line 
-            local tokens   = {};
-            for token in string.gmatch(line, "[^%s]+") do
-                table.insert(tokens, token);
-            end
-            local hex_color = rgb_to_hex(tokens[1], tokens[2], tokens[3]);
-            -- conversion of the non-heading line
-            table.insert(hex_colors, hex_color);
-        end
-        line_number = line_number + 1;
+    local line_reader   = io.lines(file);
+
+    -- Skip the heading, read only the first three 
+    -- tokens and store it into a table. 
+    for i = 1, heading_length-1 do
+        line_reader();
+    end
+    
+    -- The non-heading part of the file is being translated into
+    -- hexadecimal values representing colors.
+    for line in line_reader do 
+        local tokens   = {};
+        local words    = string.gmatch(line, "[^%s]+");
+
+        -- read only the first 3 matches.
+        for i = 1, 3 do
+            table.insert(tokens, words())
+        end 
+
+        -- conversion of the 3 matches to a hex-color
+        local hex_color = rgb_to_hex(tokens[1], tokens[2], tokens[3]);
+        table.insert(hex_colors, hex_color);
     end
     return hex_colors;
 end
