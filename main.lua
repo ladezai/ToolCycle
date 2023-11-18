@@ -10,8 +10,8 @@ function rgb_to_hex(r, g, b)
     local hex_string = string.format("%02x%02x%02x", 
                                 tonumber(r,10), 
                                 tonumber(g,10), 
-                                tonumber(b,10))
-    return tonumber(hex_string, 16)
+                                tonumber(b,10));
+    return tonumber(hex_string, 16);
 end
 
 -- Generates the palette file path depending on OS type.
@@ -61,7 +61,7 @@ function load_color_palette(file, heading_length)
 
         -- read only the first 3 matches.
         for i = 1, 3 do
-            table.insert(tokens, words())
+            table.insert(tokens, words());
         end 
 
         -- conversion of the 3 matches to a hex-color
@@ -77,21 +77,24 @@ local toolList = {
     "ACTION_TOOL_ERASER", -- select eraser
     "ACTION_TOOL_HIGHLIGHTER", -- select highlighter
     "ACTION_TOOL_SELECT_REGION", -- select region tool
-}
+    "ACTION_TOOL_HAND", -- hand to move
+};
 
 -- Common tool sizes
 local toolSize = {
-    {"fine", "ACTION_SIZE_FINE"},
+    {"thin", "ACTION_SIZE_FINE"},
     {"medium", "ACTION_SIZE_MEDIUM"},
-    {"thick", "ACTION_SIZE_THICK"}
-}
+    {"thick", "ACTION_SIZE_THICK"},
+};
+
+local fromToolSizeNameToKey = { ["thin"]= 1, ["medium"] = 2, ["thick"] = 3 };
 
 -- store the palette colors in a table
 local globalPath    = get_palette_path(); 
 local paletteColors = load_color_palette(globalPath, 4);
 
 local currentTool   = 1;
-local currentSize   = 1;
+local currentSize   = -1;
 local currentColor  = 1;
 
 function cycle_tool() 
@@ -106,10 +109,24 @@ function cycle_tool()
     -- change the current size to the one in the counter, 
     -- in this way the unified counter is well-behaved 
     -- with respect to all tools.
-    app.uiAction({["action"]=toolSize[currentSize][2]});
+    if (currentSize > 0) then 
+        app.uiAction({["action"]=toolSize[currentSize][2]});
+    else
+        -- in case not initialized cycle n times to get the same value
+        -- of size.
+        for i = 1, #toolSize do
+            cycle_size()
+        end
+    end
 end
 
 function cycle_size()
+    -- initialize on start-up
+    if (currentSize < 0) then
+        local activeInfo = app.getToolInfo("active");
+        currentSize      = fromToolSizeNameToKey[tostring(activeInfo["size"]["name"])];
+    end
+
     if (currentSize < #toolSize) then
         currentSize = currentSize + 1;
     else
