@@ -1,7 +1,9 @@
 function initUi()
     app.registerUi({ ["menu"] = "Cycle through tool size", ["callback"] = "cycle_size", ["accelerator"] = "<Shift><Alt>S"});
-    app.registerUi({ ["menu"] = "Cycle through tools", ["callback"] = "cycle_tool", ["accelerator"] = "<Shift><Alt>T"});
-    app.registerUi({ ["menu"] = "Cycle through palette's colors", ["callback"] = "cycle_color", ["accelerator"] = "<Shift><Alt>C"});
+    app.registerUi({ ["menu"] = "Cycle through tools", ["callback"] = "cycle_tool_next", ["accelerator"] = "<Shift><Alt>T"});
+    app.registerUi({ ["menu"] = "Cycle through tools", ["callback"] = "cycle_tool_prev", ["accelerator"] = "<Shift><Control>T"});
+    app.registerUi({ ["menu"] = "Cycle through palette's colors", ["callback"] = "cycle_color_next", ["accelerator"] = "<Shift><Alt>C"});
+    app.registerUi({ ["menu"] = "Cycle through palette's colors", ["callback"] = "cycle_color_prev", ["accelerator"] = "<Shift><Control>C"});
 end
 
 -- Color converion from an RGB u8 to a RGB hexadecimal, 
@@ -97,7 +99,7 @@ local currentTool   = 1;
 local currentSize   = -1;
 local currentColor  = 1;
 
-function cycle_tool() 
+function cycle_tool_next() 
     if (currentTool < #toolList) then
         currentTool = currentTool + 1;
     else
@@ -120,6 +122,31 @@ function cycle_tool()
     end
 end
 
+function cycle_tool_prev() 
+    if (currentTool > 1) then
+        currentTool = currentTool - 1;
+    else
+        currentTool = #toolList;
+    end
+
+    -- select the new tool
+    app.uiAction({["action"]=toolList[currentTool]});
+
+    -- change the current size to the one in the counter, 
+    -- in this way the unified counter is well-behaved 
+    -- with respect to all tools.
+    if (currentSize > 0) then 
+        app.uiAction({["action"]=toolSize[currentSize][2]});
+    else
+        -- in case not initialized cycle n times to get the same value
+        -- of size.
+        for i = 1, #toolSize do
+            cycle_size()
+        end
+    end
+end
+
+
 function cycle_size()
     -- initialize on start-up
     if (currentSize < 0) then
@@ -136,11 +163,21 @@ function cycle_size()
     app.uiAction({["action"]=toolSize[currentSize][2]});
 end
 
-function cycle_color()
+function cycle_color_next()
     if (currentColor < #paletteColors) then
         currentColor = currentColor + 1;
     else
         currentColor = 1;
+    end
+    -- change colors according to the given palette
+    app.changeToolColor({["color"]=paletteColors[currentColor], ["selection"] = true});
+end
+
+function cycle_color_prev()
+    if (currentColor > 1) then
+        currentColor = currentColor - 1;
+    else
+        currentColor = #paletteColors;
     end
     -- change colors according to the given palette
     app.changeToolColor({["color"]=paletteColors[currentColor], ["selection"] = true});
